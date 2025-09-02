@@ -1,0 +1,44 @@
+
+.pos 0x100
+src:
+    .quad 0x00a
+    .quad 0x0b0
+    .quad 0xc00
+
+dest:
+    .quad 0x111
+    .quad 0x222
+    .quad 0x333
+
+len:
+    .quad 3
+
+result:
+    .quad 0
+
+.pos 0x0
+    irmovq $src, %rsi       # %rsi = pointer to src
+    irmovq $dest, %rdi      # %rdi = pointer to dest
+    mrmovq len, %rcx        # %rcx = len
+    irmovq $0, %rax         # %rax = temporary val
+    irmovq $0, %rdx         # %rdx = result (checksum accumulator)
+
+Loop:
+    andq %rcx, %rcx 
+    je Done                 # if len == 0, finished
+
+    mrmovq (%rsi), %rax     # val = *src
+    rmmovq %rax, (%rdi)     # *dest = val
+    xorq %rax, %rdx         # result ^= val
+
+    irmovq $8, %rbx         # increment pointer by 8 bytes (1 word) quad
+    addq %rbx, %rsi         # src++
+    addq %rbx, %rdi         # dest++
+
+    irmovq $1, %rax  
+    subq %rax, %rcx  
+    jmp Loop
+
+Done:
+    rmmovq %rdx, result     # store checksum in result
+    halt
