@@ -121,14 +121,15 @@ bool need_valC =
 
 ## What register should be used as the A source?
 word srcA = [
-	icode in { IRRMOVQ, IRMMOVQ, IOPQ, IPUSHQ  } : rA;
+	icode in { IRRMOVQ, IRMMOVQ, IOPQ, IPUSHQ} : rA;
 	icode in { IPOPQ, IRET } : RRSP;
+	icode in {IIADDQ} : RNONE;   # no A register
 	1 : RNONE; # Don't need register
 ];
 
 ## What register should be used as the B source?
 word srcB = [
-	icode in { IOPQ, IRMMOVQ, IMRMOVQ , IIADDQ  } : rB;
+	icode in { IOPQ, IRMMOVQ, IMRMOVQ,IIADDQ  } : rB;
 	icode in { IPUSHQ, IPOPQ, ICALL, IRET } : RRSP;
 	1 : RNONE;  # Don't need register
 ];
@@ -136,7 +137,7 @@ word srcB = [
 ## What register should be used as the E destination?
 word dstE = [
 	icode in { IRRMOVQ } && Cnd : rB;
-	icode in { IIRMOVQ, IOPQ, IIADDQ } : rB;
+	icode in { IIRMOVQ, IOPQ,IIADDQ } : rB;
 	icode in { IPUSHQ, IPOPQ, ICALL, IRET } : RRSP;
 	1 : RNONE;  # Don't write any register
 ];
@@ -151,8 +152,8 @@ word dstM = [
 
 ## Select input A to ALU
 word aluA = [
-	icode in { IRRMOVQ, IOPQ } : valA;
-	icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ, IIADDQ  } : valC;
+	icode in { IRRMOVQ, IOPQ} : valA;
+	icode in { IIRMOVQ, IRMMOVQ, IMRMOVQ,IIADDQ } : valC;
 	icode in { ICALL, IPUSHQ } : -8;
 	icode in { IRET, IPOPQ } : 8;
 	# Other instructions don't need ALU
@@ -169,6 +170,7 @@ word aluB = [
 ## Set the ALU function
 word alufun = [
 	icode == IOPQ : ifun;
+	icode == IIADDQ : ALUADD;  # always addition
 	1 : ALUADD;
 ];
 
